@@ -8,6 +8,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -24,13 +25,23 @@ public class DatabaseLoader implements ApplicationRunner {
     public List<Author> authors = new ArrayList<>();
 
 
+    private final AuthorRepository authorRepository;
+
     @Autowired
-    public DatabaseLoader(PostRepository repository) {
+    public DatabaseLoader(PostRepository repository, AuthorRepository authorRepository) {
         this.postRepository = repository;
+        this.authorRepository = authorRepository;
     }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        authors.addAll(Arrays.asList(
+           new Author("sac","Sachin","Vedpathak","sacved"),
+           new Author("suj","Sujit","Vedpathak","sujved"),
+           new Author("shiv","Shivani","Vedpathak","shivved"),
+           new Author("saav","Saavi","Vedpathak","saaved")
+        ));
+        authorRepository.saveAll(authors);
         IntStream.range(0,40).forEach(i->{
             String template = templates[i % templates.length];
             String gadget = gadgets[i % gadgets.length];
@@ -38,7 +49,11 @@ public class DatabaseLoader implements ApplicationRunner {
             String title = String.format(template, gadget);
             Post post = new Post(title, "Lorem ipsum dolor sit amet, consectetur adipiscing elit… ");
             randomPosts.add(post);
+            Author author = authors.get(i % authors.size());
+            post.setAuthor(author);
+            author.addPost(post);
         });
         postRepository.saveAll(randomPosts);
+        authorRepository.saveAll(authors);
     }
 }
